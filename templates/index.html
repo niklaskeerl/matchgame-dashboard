@@ -1,0 +1,399 @@
+<!doctype html>
+<html>
+  <head>
+      <title>Matching Game Dashboard</title>
+      <!--Import Google Icon Font-->
+      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+      <!--Import materialize.css-->
+      <link type="text/css" rel="stylesheet" href="static/css/materialize.min.css"  media="screen,projection"/>
+      <link type="text/css" rel="stylesheet" href="static/css/spinner.css" media="screen,projection" />
+
+      <!--Let browser know website is optimized for mobile-->
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+      <style>
+        li{
+            cursor: pointer;
+        }
+        .indicator{
+            background-color: #00897b !important;
+        }
+    </style>
+  </head>
+  <body>
+  <div class="container">
+{% if error %}
+  <div class="row">
+      <div class="col s12">
+          <div class="card red">
+              <div class="card-content">
+                  <span class="card-title"><i class="material-icons">error</i>Fehler</span><p>{{error}}</p>
+              </div>
+          </div>
+      </div>
+  </div>
+{% endif %}
+{% if start %}
+{% else %}
+      <p>Bitte nutze diese Webseite im Vollbild Modus. Das funktioniert zum Beispiel mit der Taste F11.</p>
+  <p>Bitte wähle eine Startzeit und Endzeit aus. Die Startzeit sollte vor der ersten Interaktion mit den Spielen liegen.
+      Die Endzeit sollte nach der letzten Interaktion mit den Spielen liegen.</p>
+{% endif %}
+    {% if start %}
+      <div class="row">
+          {% if game %}
+      <div class="col s4">Spiel: {{game}}</div>
+      {% endif %}
+      <div class="col s4">Startzeit: {{start}}</div>
+      <div class="col s4">Endzeit: {{end}}</div>
+      </div>
+          {% endif %}
+<form>
+    {% if start %}
+    <input type="datetime-local" name="start" class="hide" value="{{start}}">
+    <input type="datetime-local" name="end" class="hide" value="{{end}}">
+    {% else %}
+  <label for="start-date">Startzeit:</label><br>
+  <input type="datetime-local" name="start" id="start-date">
+    <label for="end-date">Endzeit:</label><br>
+  <input type="datetime-local" name="end" id="end-date">
+    {% endif %}
+    {% if game %}
+    <input type="text" name="game" value="{{game}}" class="hide">
+     {% else %}
+    <p>Spiele:</p>
+    <p>
+      <label>
+        <input class="with-gap" name="game" value="inf-ai-systems" type="radio" />
+        <span>inf-ai-systems</span>
+      </label>
+    </p>
+    <p>
+      <label>
+        <input class="with-gap" name="game" value="inf-eva" type="radio"  />
+        <span>inf-eva</span>
+      </label>
+    </p>
+    <p>
+      <label>
+        <input class="with-gap" name="game" value="inf-regex" type="radio" />
+        <span>inf-regex</span>
+      </label>
+    </p>
+    {% endif %}
+    {% if sessions %}
+    <p>Bitte klicke alle Spiele an, die berücksichtigt werden sollen.</p>
+    <div>Gefundene Spiele:</div>
+    <div class="row">
+    {% endif %}
+    {% for session in sessions %}
+        <div class="col s3">
+            <div class="card">
+                <div class="card-panel">
+                <div class="card-content">
+                    <span class="card-title">Spiel {{ loop.index }}</span>
+                    <p>Startzeit: {{ session.timestamp }}</p>
+                    <p>Interaktionen: <b>{{ session.statementCount }}</b></p>
+                    <p>Level: {{ session.level }}</p>
+                    <p>Tisch: {{ session.table }}</p>
+                </div>
+                <div class="card-action hoverable">
+        <label><input type="checkbox" name={{ session.name }} value={{ session.id }} /><span style="color: black;">Spiel hinzufügen</span></label>
+                </div>
+                    </div>
+                </div>
+            </div>
+    {% endfor %}
+    {% if sessions %}
+    </div>
+    {% endif %}
+    {% if session_count %}
+    <input type="text" name="sessioncount" value={{session_count}} class="hide" />
+    <input type="text" name="screen" value=0 class="hide" />
+    {% endif %}
+    {% if screen %}
+    {% else %}
+    <button class="btn waves-effect waves-light" type="submit" onclick="showSpinner()">Senden
+    <i class="material-icons right">send</i>
+  </button>
+     <div id="loading" class="loading" onClick="hideSpinner()">
+    Loading&#8230;
+  </div>
+    {% endif %}
+</form>
+      {% if screen %}
+      <div style="display: flex;justify-content: center;align-items: center;"><button class="btn waves-effect waves-light" onclick="location.href='/'">Neustart
+    <i class="material-icons right">refresh</i>
+      </button></div>
+      {% else %}
+      {% if sessions %}
+      <button class="btn waves-effect waves-light" onclick="location.href='/'" style="margin-top: 5px">Neustart
+    <i class="material-icons right">refresh</i>
+  </button>
+      {% endif %}
+      {% endif %}
+      </div>
+  {% if screen %}
+  <div class="container">
+      <div class="row">
+          <div class="col s12">
+              <ul class="tabs">
+                  {% if screen == "0" %}
+                  <li class="tab col s2"><a class="active teal-text text-darken-1" onclick="changeScreen(0)">Statusseite</a></li>
+                  {% else %}
+  <li class="tab col s2"><a class="teal-text text-lighten-2" onclick="changeScreen(0)">Statusseite</a></li>
+                  {% endif %}
+                  {% if screen == "1" %}
+                  <li class="tab col s2"><a class="active teal-text text-darken-1" onclick="changeScreen(1)">Punkteverlauf</a></li>
+                  {% else %}
+  <li class="tab col s2"><a class="teal-text text-lighten-2" onclick="changeScreen(1)">Punkteverlauf</a></li>
+                  {% endif %}
+                  {% if screen == "2" %}
+  <li class="tab col s2"><a class="active teal-text text-darken-1" onclick="changeScreen(2)">Elemente in %</a></li>
+                  {% else %}
+                  <li class="tab col s2"><a class="teal-text text-lighten-2" onclick="changeScreen(2)">Elemente in %</a></li>
+                  {% endif %}
+                  {% if screen == "3" %}
+                  <li class="tab col s2"><a class="active teal-text text-darken-1" onclick="changeScreen(3)">Elemente absolut</a></li>
+                  {% else %}
+                  <li class="tab col s2"><a class="teal-text text-lighten-2" onclick="changeScreen(3)">Elemente absolut</a></li>
+                  {% endif %}
+                  {% if screen == "4" %}
+                  <li class="tab col s2"><a class="active teal-text text-darken-1" onclick="changeScreen(4)">Element zu Kategorie</a></li>
+                  {% else %}
+  <li class="tab col s2"><a class="teal-text text-lighten-2" onclick="changeScreen(4)">Element zu Kategorie</a></li>
+                  {% endif %}
+                  {% if screen == "5" %}
+                  <li class="tab col s2"><a class="active teal-text text-darken-1" onclick="changeScreen(5)">Kategorie zu Element</a></li>
+                  {% else %}
+  <li class="tab col s2"><a class="teal-text text-lighten-2" onclick="changeScreen(5)">Kategorie zu Element</a></li>
+                  {% endif %}
+              </ul>
+          </div>
+      </div>
+      </div>
+  {% endif %}
+
+
+  {% if screen == "2" %}
+  {% if word_category_chart_relative %}
+  <embed type="image/svg+xml" src= {{ word_category_chart_relative|safe }} />
+  {% endif %}
+  {% endif %}
+
+  {% if screen == "3" %}
+   {% if word_category_charts_absolute|length > 1 %}
+  <div class="row">
+      {% for chart in word_category_charts_absolute %}
+      <div class="col s6">
+          <embed type="image/svg+xml" src= {{ chart|safe }} />
+          <a target="_blank" class="waves-effect waves-light btn"><i class="material-icons">fullscreen</i></a>
+      </div>
+      {% endfor %}
+  </div>
+  {% else %}
+  {% for chart in word_category_charts_absolute %}
+  <embed type="image/svg+xml" src= {{ chart|safe }} />
+  {% endfor %}
+  {% endif %}
+  {% endif %}
+
+  {% if screen == "5" %}
+      {% if charts_word %}
+      <div class="row">
+      {% endif %}
+      {% for chart in charts_word %}
+      <div class="col s6">
+          <embed type="image/svg+xml" class="limit" src= {{ chart|safe }} />
+      </div>
+    {% endfor %}
+          {% if charts_word %}
+      </div>
+        <div class="row">
+             <div class="col s1"><button style="position: absolute; top: 95%" class="btn waves-effect waves-light" id="back" onclick="showBeforePage()">Zurück
+    <i class="material-icons right">keyboard_arrow_left</i>
+      </button></div>
+            <div class="col s1 offset-s11"><button style="position: absolute; top: 95%" class="btn waves-effect waves-light" id="front" onclick="showNextPage()">Weiter
+    <i class="material-icons right">keyboard_arrow_right</i>
+      </button></div>
+            </div>
+      {% endif %}
+  {% endif %}
+
+  {% if screen == "7" %}
+      {% if chart_level_relative %}
+{% endif %}
+{% if chart_level_relative %}
+  <div>
+     <embed type="image/svg+xml" src= {{ chart_level_relative|safe }} />
+  </div>
+{% endif %}
+{% if chart_level_absolute %}
+  <div>
+     <embed type="image/svg+xml" src= {{ chart_level_absolute|safe }} />
+  </div>
+{% endif %}
+  {% endif %}
+
+  {% if screen == "1" %}
+{% if chart_time %}
+  <div>
+     <embed type="image/svg+xml" src= {{ chart_time|safe }} />
+  </div>
+  {% endif %}
+  {% endif %}
+
+  {% if screen == "4" %}
+  {% if charts_regex %}
+      <div class="row">
+      {% endif %}
+      {% for chart in charts_regex %}
+      <div class="col s6">
+          <embed type="image/svg+xml" class="limit" src= {{ chart|safe }} />
+      </div>
+    {% endfor %}
+          {% if charts_regex %}
+      </div>
+      {% endif %}
+  </div>
+        <div class="row">
+             <div class="col s1"><button style="position: absolute; top: 95%" class="btn waves-effect waves-light" id="back" onclick="showBeforePage()">Zurück
+    <i class="material-icons right">keyboard_arrow_left</i>
+      </button></div>
+            <div class="col s1 offset-s11"><button style="position: absolute; top: 95%" class="btn waves-effect waves-light" id="front" onclick="showNextPage()">Weiter
+    <i class="material-icons right">keyboard_arrow_right</i>
+      </button></div>
+            </div>
+  {% endif %}
+
+  {% if screen == "0" %}
+  {% if warnings %}
+  <div class="container">
+      <div class="row">
+  {% for warning in warnings %}
+      <div class="col s12">
+          {% if warning.type == "Problem" %}
+          <div class="card red">
+              <div class="card-content">
+                  <span class="card-title"><i class="material-icons">error</i>{{warning.type}}</span><p>{{warning.message}}</p>
+                  {% if warning.img %}
+                  <img src="{{warning.img}}" width="80" height="80">
+                  {% endif %}
+              </div>
+          </div>
+          {% endif %}
+          {% if warning.type == "Warnung" %}
+          <div class="card yellow">
+              <div class="card-content">
+                  <span class="card-title"><i class="material-icons">warning</i>{{warning.type}}</span><p>{{warning.message}}</p>
+              </div>
+          </div>
+          {% endif %}
+      </div>
+{% endfor %}
+          </div>
+      </div>
+  {% endif %}
+      {% if chart_global %}
+  <div>
+     <embed type="image/svg+xml" src= {{ chart_global|safe }} />
+  </div>
+  {% endif %}
+  {% endif %}
+<script type="text/javascript" src="static/js/materialize.min.js"></script>
+  <script>
+      // Initialize Materialize elements
+       M.AutoInit();
+       // Get all buttons with an A HTML element to add a link to the fullsize route
+       a_elements = document.querySelectorAll('a.waves-effect.waves-light.btn')
+       a_elements.forEach((a_element) => { a_element.href = '/chart?chart=' + a_element.parentElement.childNodes[1].src });
+       //Changing the screen using the tab elements changes the last character (screen request arg)
+       function changeScreen(number){
+         let url = location.href;
+         let new_url = url.slice(0, -1) + number
+         location.href = new_url
+       }
+       // Get the loading div Element and add a function to show the spinner
+      const loadingDiv = document.getElementById('loading');
+      function showSpinner() {
+         loadingDiv.style.visibility = 'visible';
+       }
+       // Define all variables needed when showing more than 4 charts on one screen
+       let embed_elements = document.querySelectorAll(".limit")
+       let button_front;
+       let button_back;
+       let page = 0
+      // Initialize the variables when they could be found
+       if (embed_elements.length > 0){
+         button_front = document.getElementById("front")
+         button_back = document.getElementById("back")
+         button_front.style.display = "none";
+         button_back.style.display = "none";
+       }
+       if (embed_elements.length > 4){
+         hideAll();
+         for (let i = 0; i < 4; i++) {
+           try{
+             embed_elements[i].hidden = false;
+           }
+           catch(error){}
+         }
+         button_front.style.display = "block";
+       }
+       // Show the next page of elements
+       function showNextPage(){
+       hideAll();
+       page += 1;
+         for (let i = 0 + page * 4; i < 4 + page * 4; i++){
+           try{
+             embed_elements[i].hidden = false;
+           }
+           catch(error){}
+         }
+         if(hasNext()){
+           button_front.style.display = "block";
+         }
+         else{
+           button_front.style.display = "none";
+         }
+         if(hasBefore()){
+           button_back.style.display = "block";
+         }
+         else{
+           button_back.style.display = "none";
+         }
+       }
+       // Show the page before
+       function showBeforePage(){
+       hideAll();
+       page -= 1;
+         for (let i = 0 + page * 4; i < 4 + page * 4; i++){
+           try{
+             embed_elements[i].hidden = false;
+           }
+           catch(error){}
+         }
+         if(hasNext()){
+           button_front.style.display = "block";
+         }
+         else{
+           button_front.style.display = "none";
+         }
+         if(hasBefore()){
+           button_back.style.display = "block";
+         }
+         else{
+           button_back.style.display = "none";
+         }
+       }
+       function hideAll(){
+         embed_elements.forEach((embed) => {embed.hidden = true})
+       }
+       function hasNext(){
+         return embed_elements.length > 4 * (page + 1)
+       }
+       function hasBefore(){
+         return page > 0
+       }
+  </script>
+  </body>
+</html>
